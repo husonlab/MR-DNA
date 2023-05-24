@@ -11,7 +11,7 @@ We recommand you to run MR-DNA in a python vitual environemnt that built by Anac
     conda env create -n MR-DNA --file MR-DNA.yml
     conda activate MR-DNA
 # Usage
-### Training DNA-MR on DNA-MR-50 dataset
+Training DNA-MR on DNA-MR-50 dataset
     
     cd scripts
     python distilbert_crf_trainer.py
