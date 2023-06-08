@@ -37,7 +37,17 @@ new_token = []
 for ele in uniq_kmer_list:
     if 'N' in ele:
         new_token.append(ele)
+# list all possible 3 mer permutations (in case some may not yet included in tokenizer\'s vocabulary)
+def kmer_permutation(list_):
+    res = []
+    for i in list_:
+        for j in list_:
+            for k in list_:
+                ele = f'{i}{j}{k}'
+                res.append(ele)
+    return res
 
+list_3mer = kmer_permutation(['A','T','G','C'])
 
 label_names = ['O', 'Methyl', 'Non-Methyl']
 id2label = {i: label for i, label in enumerate(label_names)}
@@ -67,7 +77,9 @@ tmp_train_dataset, tmp_test_dataset = train_test_split(train_df[['sentence', 'ne
 tokenizer = DistilBertTokenizerFast.from_pretrained(pretrained_model_name_or_path='wenhuan/MuLan-Methyl-DistilBERT_5hmC')
 
 # add new tokens to the tokenizer vocabulary
-tokenizer.add_tokens(new_token)
+new_tokens_3mer = set(list_3mer) - set(tokenizer.vocab.keys())
+new_token_ = list(set(new_token+list(new_tokens_3mer)))
+tokenizer.add_tokens(new_token_)
 model = DistilBertCRF_Focal.from_pretrained(pretrained_model_name_or_path='wenhuan/MuLan-Methyl-DistilBERT_5hmC', num_labels=3, ignore_mismatched_sizes=True)
 model.resize_token_embeddings(len(tokenizer))
 print(model)
@@ -146,7 +158,7 @@ trainer = Trainer(
 )
 
 trainer.train()
-trainer.evaluate()
+trainer.evaluate(eval_dataset=test_dataset)
 
 trainer.save_model(model_path)
 
