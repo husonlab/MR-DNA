@@ -108,7 +108,7 @@ if __name__=='__main__':
         tmp_valid_dataset.reset_index(drop=True, inplace=True)
 
     # load tokenizer and pretrained model
-    tokenizer = DistilBertTokenizerFast.from_pretrained(f'./pretrained/tokenizer/5mC')
+    tokenizer = DistilBertTokenizerFast.from_pretrained(f'wenhuan/MR-DNA')
     distilbert = DistilBertForTokenClassification.from_pretrained('wenhuan/MuLan-Methyl-DistilBERT_5hmC', num_labels=3, ignore_mismatched_sizes=True)
     distilbert.resize_token_embeddings(len(tokenizer))
 
