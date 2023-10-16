@@ -108,7 +108,7 @@ if __name__=='__main__':
         tmp_valid_dataset.reset_index(drop=True, inplace=True)
 
     # load tokenizer and pretrained model
-    tokenizer = DistilBertTokenizerFast.from_pretrained(f'wenhuan/MR-DNA')
+    tokenizer = DistilBertTokenizerFast.from_pretrained(f'./pretrained/tokenizer/5mC')
     distilbert = DistilBertForTokenClassification.from_pretrained('wenhuan/MuLan-Methyl-DistilBERT_5hmC', num_labels=3, ignore_mismatched_sizes=True)
     distilbert.resize_token_embeddings(len(tokenizer))
 
@@ -130,7 +130,7 @@ if __name__=='__main__':
         test_dataset = utils.MyDataset(tmp_test_dataset, tokenizer)
         # Create the train DataLoader
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-        model.load_state_dict(torch.load(f'{finetune_model_path}/model.pth'))
+        model.load_state_dict(torch.load(f'{finetune_model_path}/{args.dataset}_model.pth'))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.manual_seed(100)
