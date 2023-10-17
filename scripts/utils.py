@@ -1,5 +1,6 @@
 import pandas as pd
 import torch
+from torch.utils.data import Dataset, DataLoader, RandomSampler
 
 
 
@@ -97,25 +98,6 @@ def label_ner_3mer_3label(sequence, methy_list):
             label_list[pos] = 'Non-Methyl'
     return label_list
 
-def label_ner_3mer_4label(sequence, methy_list):
-    '''
-    each token is a 3mer sequence
-    four labels: 'O', 'B-Methyl', 'C-Methyl', 'E-Methyl'
-    '''
-    seq = sequence.split(' ')
-    label_list = ['O'] * len(seq)
-    if len(methy_list) != 0:
-        for pos in methy_list:
-            label_list[pos] = 'C-Methyl'
-            try:
-                label_list[pos-1] = 'E-Methyl'
-            except:
-                pass
-            try:
-                label_list[pos+1] = 'B-Methyl'
-            except:
-                pass
-    return label_list
 
 # list all possible 3 mer permutations
 def kmer_permutation(list_):
@@ -144,11 +126,11 @@ def func_CG(list_):
 
 # define dataset class
 class MyDataset(Dataset):
-    def __init__(self, in_dataset, tokenizer, label=True):
+    def __init__(self, in_dataset, tokenizer, _label=True):
         self.data = in_dataset['sentence']
         self.tokenizer = tokenizer
         self.CG_anno = in_dataset['CG_anno']
-        if label == True:
+        if _label == True:
             self.labels = in_dataset['label_ids']
         else:
             self.labels = None
@@ -159,7 +141,7 @@ class MyDataset(Dataset):
     def __getitem__(self, index):
         data_sample = self.data[index]
         CG_anno = self.CG_anno[index]
-        if self.labels != None:
+        if self.labels is not None:
             label = self.labels[index]
 
         # Tokenize the input text
@@ -172,7 +154,7 @@ class MyDataset(Dataset):
         input_ids = encoding['input_ids'].squeeze()
         attention_mask = encoding['attention_mask'].squeeze()
         # Return the input ids, attention mask, and label as tensors
-        if self.labels != None:
+        if self.labels is not None:
             return input_ids, attention_mask, torch.tensor(CG_anno), torch.tensor(label)
         else:
             return input_ids, attention_mask, torch.tensor(CG_anno)
