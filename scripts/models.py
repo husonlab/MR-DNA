@@ -8,6 +8,7 @@ from torch.nn import CrossEntropyLoss
 import torch
 from torchcrf import CRF
 from methyl_loss import MethyLoss
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, roc_auc_score, matthews_corrcoef, confusion_matrix
 
 
 def compute_metrics(labels, preds):
