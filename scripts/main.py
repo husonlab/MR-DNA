@@ -118,7 +118,7 @@ if __name__=='__main__':
     if args.status == 'train':
         # Create an instance of the TrainDataset
         train_dataset = utils.MyDataset(tmp_train_dataset, tokenizer, _label=True)
-        valid_dataset = utils.MyDataset(tmp_valid_dataset, tokenizer, _llabel=True)
+        valid_dataset = utils.MyDataset(tmp_valid_dataset, tokenizer, _label=True)
         train_sampler = RandomSampler(train_dataset)
         valid_sampler = RandomSampler(valid_dataset)
         # Create the train DataLoader
