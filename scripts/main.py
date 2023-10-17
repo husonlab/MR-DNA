@@ -18,12 +18,12 @@ import time
 from transformers import AutoTokenizer, DistilBertConfig, DistilBertTokenizerFast, DistilBertForTokenClassification, DistilBertForMaskedLM, DistilBertForSequenceClassification, DistilBertModel
 from transformers import AdamW, get_linear_schedule_with_warmup, DataCollatorForTokenClassification, Trainer, TrainingArguments, EarlyStoppingCallback
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, roc_auc_score, matthews_corrcoef, confusion_matrix
 from Bio.Seq import Seq
 from tqdm.autonotebook import tqdm, trange
 from ast import literal_eval
 import utils
 from models import DistilBertCRF_Focal, DistilBertCRF, DistilBertCRF_MethyLoss
+import models
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -45,7 +45,7 @@ if __name__=='__main__':
     # Define the hyperparameters
     batch_size = args.batch_size
     learning_rate = args.lr
-    num_epochs = args.epoch
+    num_epochs = args.epochs
     lr_patience = args.lr_decay
     earlyStop_patience = args.patience
 
@@ -55,7 +55,7 @@ if __name__=='__main__':
     sample_length = length_map[args.dataset]
 
     # define project directory
-    root_dir = os.path.abspath(os.path.dirname(os.getcwd())) #../../MR-DNA/
+    root_dir = os.getcwd() #../../MR-DNA/
     # read data and data preprocessing
     mydf = pd.read_csv(f'{root_dir}/database/{args.dataset}/{args.status}.txt', sep='\t', converters={'methy_pos': literal_eval})
     mydf = mydf.rename(columns={'sequence': 'text', 'methy_pos':'label'})
@@ -108,26 +108,27 @@ if __name__=='__main__':
         tmp_valid_dataset.reset_index(drop=True, inplace=True)
 
     # load tokenizer and pretrained model
-    tokenizer = DistilBertTokenizerFast.from_pretrained(f'./pretrained/tokenizer/5mC')
+    tokenizer = DistilBertTokenizerFast.from_pretrained('wenhuan/MR-DNA')
     distilbert = DistilBertForTokenClassification.from_pretrained('wenhuan/MuLan-Methyl-DistilBERT_5hmC', num_labels=3, ignore_mismatched_sizes=True)
     distilbert.resize_token_embeddings(len(tokenizer))
 
     # load model structure
     model = _model(distilbert, num_labels=3)
 
-    if args.staus == 'train':
+    if args.status == 'train':
         # Create an instance of the TrainDataset
-        train_dataset = utils.MyDataset(tmp_train_dataset, tokenizer, label=True)
-        valid_dataset = utils.MyDataset(tmp_valid_dataset, tokenizer, label=True)
+        train_dataset = utils.MyDataset(tmp_train_dataset, tokenizer, _label=True)
+        valid_dataset = utils.MyDataset(tmp_valid_dataset, tokenizer, _llabel=True)
         train_sampler = RandomSampler(train_dataset)
         valid_sampler = RandomSampler(valid_dataset)
         # Create the train DataLoader
         train_loader = DataLoader(train_dataset, sampler=train_sampler, batch_size=batch_size)
         valid_loader = DataLoader(valid_dataset, sampler=valid_sampler, batch_size=batch_size)
     else:
+        mydf.reset_index(drop=True, inplace=True)
         tmp_test_dataset = mydf
         # Create an instance of the TestDataset
-        test_dataset = utils.MyDataset(tmp_test_dataset, tokenizer)
+        test_dataset = utils.MyDataset(tmp_test_dataset, tokenizer, _label=True)
         # Create the train DataLoader
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
         model.load_state_dict(torch.load(f'{finetune_model_path}/{args.dataset}_model.pth'))
