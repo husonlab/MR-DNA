@@ -14,10 +14,10 @@ We recommand you to run MR-DNA in a python vitual environemnt that built by Anac
 Training DNA-MR on DNA-MR-50 dataset
     
     cd MR-DNA
-    python ./script/main.py --dataset MR-DNA-50 --status train --model DistilBertCRF_MethyLoss --savePath ./result/model/
+    python ./scripts/main.py --dataset MR-DNA-50 --status train --model DistilBertCRF_MethyLoss --savePath ./result/model/
 
 Evaulate DNA-MR performance on test dataset
 
     cd MR-DNA
-    python ./script/main.py --dataset MR-DNA-50 --status test --model DistilBertCRF_MethyLoss
+    python ./scripts/main.py --dataset MR-DNA-50 --status test --model DistilBertCRF_MethyLoss
 
