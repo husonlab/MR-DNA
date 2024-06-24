@@ -6,9 +6,11 @@ Download MR-DNA from the github repository.
     git clone https://github.com/husonlab/MR-DNA.git
     cd MR-DNA
 
-We recommand you to run MR-DNA in a python vitual environemnt that built by Anaconda, creating conda enviroment equipped with required packages from MR-DNA yml file.
+We recommend you run MR-DNA in a Python virtual environment built by Anaconda, creating a conda environment equipped with the required packages from the MR-DNA yml file.
 
     conda env create -n MR-DNA --file MR-DNA.yml
+    # If failed, please try to update your conda to latest version using
+    conda update -n base -c conda-forge --all
     conda activate MR-DNA
 # Get started
 Training DNA-MR on DNA-MR-50 dataset
