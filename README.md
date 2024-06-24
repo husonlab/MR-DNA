@@ -9,8 +9,10 @@ Download MR-DNA from the github repository.
 We recommend you run MR-DNA in a Python virtual environment built by Anaconda, creating a conda environment equipped with the required packages from the MR-DNA yml file.
 
     conda env create -n MR-DNA --file MR-DNA.yml
-    # If failed, please try to update your conda to latest version using
+    # If failed, please try to update your conda to the latest version using
     conda update -n base -c conda-forge --all
+    # Check the installation of the required environment
+    conda info --env
     conda activate MR-DNA
 # Get started
 Training DNA-MR on DNA-MR-50 dataset
