@@ -18,7 +18,7 @@ We recommend you run MR-DNA in a Python virtual environment built by Anaconda, c
 Training DNA-MR on DNA-MR-50 dataset
     
     cd MR-DNA
-    python ./scripts/main.py --dataset MR-DNA-50 --status train --model DistilBertCRF_MethyLoss --savePath ./result/model/
+    python ./scripts/main.py --dataset MR-DNA-50 --status train --model DistilBertCRF_MethyLoss --savePath result/model/
 
 Evaulate DNA-MR performance on test dataset
 
