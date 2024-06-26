@@ -12,7 +12,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau, LambdaLR
-from warmup_scheduler_pytorch import WarmUpScheduler
+#from warmup_scheduler_pytorch import WarmUpScheduler
 from torch.utils.data.distributed import DistributedSampler
 import time
 from transformers import AutoTokenizer, DistilBertConfig, DistilBertTokenizerFast, DistilBertForTokenClassification, DistilBertForMaskedLM, DistilBertForSequenceClassification, DistilBertModel
@@ -25,6 +25,8 @@ import utils
 from models import DistilBertCRF_Focal, DistilBertCRF, DistilBertCRF_MethyLoss
 import models
 import warnings
+from pathlib import Path
+
 warnings.filterwarnings('ignore')
 
 if __name__=='__main__':
@@ -33,6 +35,9 @@ if __name__=='__main__':
     parser.add_argument('--status', type=str, default='test', help='training model or test model')
     parser.add_argument('--model', type=str, default='DistilBertCRF_MethyLoss', help='Model type')
     parser.add_argument('--savePath', type=str, default='result/model', help='path for saving the model in train mode')
+    parser.add_argument('--multiGPU', action='store_true', help='use multiple GPUs if GPU works')
+    parser.add_argument('--trainedModel', type=str, help='model for testing')
+    
 
     parser.add_argument('--lr', type=float, default=2e-5, help='Number of learning rate.')
     parser.add_argument('--epochs', type=int, default=64, help='Number of epochs.')
@@ -97,9 +102,9 @@ if __name__=='__main__':
     if args.status == 'train':
         finetune_model_path = os.path.join(root_dir, args.savePath, args.dataset)
         if not os.path.exists(finetune_model_path):
-            os.mkdir(finetune_model_path)
+            Path(finetune_model_path).mkdir(parents=True, exist_ok=True)
     else:
-        finetune_model_path = os.path.join(root_dir, 'model', args.dataset)
+        finetune_model_path = os.path.join(root_dir, args.savePath, args.dataset)
 
     if args.status == 'train':
         # split data to training set and validation set
@@ -131,7 +136,7 @@ if __name__=='__main__':
         test_dataset = utils.MyDataset(tmp_test_dataset, tokenizer, _label=True)
         # Create the train DataLoader
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-        model.load_state_dict(torch.load(f'{finetune_model_path}/{args.dataset}_model.pth'))
+        model.load_state_dict(torch.load(f'{finetune_model_path}/{args.trainedModel}'))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.manual_seed(100)
@@ -147,7 +152,8 @@ if __name__=='__main__':
         early_stopper = models.EarlyStopper(patience=earlyStop_patience, min_delta=0)
         epoch_tqdm = trange(num_epochs, desc="Epoch")
         model.to(device)
-        model = nn.DataParallel(model)
+        if args.multiGPU:
+            model = nn.DataParallel(model)
         for epoch in epoch_tqdm:
             start_time = time.time()
             # Create an instance of the ensemble model
@@ -193,7 +199,7 @@ if __name__=='__main__':
                 for _batch in valid_loader:
 
                     _input_ids, _attention_mask, _CG_annotation, _labels = _batch
-                    _input_ids, _attention_mask, CG_annotation, _labels = _input_ids.to(device), _attention_mask.to(device), CG_annotation.to(device), _labels.to(device)
+                    _input_ids, _attention_mask, _CG_annotation, _labels = _input_ids.to(device), _attention_mask.to(device), _CG_annotation.to(device), _labels.to(device)
 
                     if _input_ids.shape[1] == sample_length:
                         pass
@@ -222,13 +228,19 @@ if __name__=='__main__':
             # save the best model
             if valid_loss < best_loss:
                 best_loss = valid_loss
-                torch.save(model.module.state_dict(), f'{finetune_model_path}/{epoch+1}_{valid_loss:.4f}_model.pth')
+                if args.multiGPU:
+                    torch.save(model.module.state_dict(), f'{finetune_model_path}/{epoch+1}_{valid_loss:.4f}_model.pth')
+                else:
+                    torch.save(model.state_dict(), f'{finetune_model_path}/{epoch+1}_{valid_loss:.4f}_model.pth')
 
             # early stop
             if early_stopper.early_stop(valid_loss):
                 print(f'early stopped at epoch {epoch+1}')
                 print(f'Saving the last model')
-                torch.save(model.module.state_dict(), f'{finetune_model_path}/{epoch+1}_{valid_loss:.4f}_model.pth')
+                if args.multiGPU:
+                    torch.save(model.module.state_dict(), f'{finetune_model_path}/{epoch+1}_{valid_loss:.4f}_model.pth')
+                else:
+                    torch.save(model.state_dict(), f'{finetune_model_path}/{epoch+1}_{valid_loss:.4f}_model.pth')
                 break
 
     else:
