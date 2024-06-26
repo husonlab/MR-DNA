@@ -14,14 +14,17 @@ We recommend you run MR-DNA in a Python virtual environment built by Anaconda, c
     # Check the installation of the required environment
     conda info --env
     conda activate MR-DNA
+    # Install the required package additionally
+    pip install pytorch-crf
+    
 # Get started
 Training DNA-MR on DNA-MR-50 dataset
     
     cd MR-DNA
     python ./scripts/main.py --dataset MR-DNA-50 --status train --model DistilBertCRF_MethyLoss --savePath result/model/
 
-Evaulate DNA-MR performance on test dataset
+Evaluating DNA-MR performance on the test dataset. Training steps saved models whose performance improved. The user needs to give the specific model name when runing the following command.
 
     cd MR-DNA
-    python ./scripts/main.py --dataset MR-DNA-50 --status test --model DistilBertCRF_MethyLoss
+    python ./scripts/main.py --dataset MR-DNA-50 --status test --model DistilBertCRF_MethyLoss --savePath result/model/ --trainedModel <model>
 
